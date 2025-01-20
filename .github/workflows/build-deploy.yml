@@ -14,13 +14,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    # Step 2: Authenticate with Google Cloud using the auth action
-    - name: Authenticate with GCP
-      uses: google-github-actions/auth@v0
+    # Step 2: Set up GCP credentials using the latest version of auth action
+    - name: Set up GCP credentials
+      uses: google-github-actions/setup-gcloud@v2
       with:
-        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+        project_id: delta-prop-shop
+        credentials: ${{ secrets.GCP_CREDENTIALS }}
 
-    # Step 3: Set up GCloud CLI (authentication is now handled)
+    # Step 3: Set up GCloud CLI (no need to install gce component)
     - name: Set up GCloud CLI
       uses: google-github-actions/setup-gcloud@v2
       with:
