@@ -3,7 +3,7 @@ name: Deploy to GCP
 on:
   push:
     branches:
-      - main  # Trigger the deployment only on pushes to the 'main' branch.
+      - main  # Trigger deployment on pushes to the 'main' branch.
 
 jobs:
   deploy:
@@ -14,14 +14,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    # Step 2: Set up GCP credentials using the latest version of auth action
+    # Step 2: Set up GCP credentials
     - name: Set up GCP credentials
       uses: google-github-actions/setup-gcloud@v2
       with:
         project_id: delta-prop-shop
         credentials: ${{ secrets.GCP_CREDENTIALS }}
 
-    # Step 3: Set up GCloud CLI (no need to install gce component)
+    # Step 3: Set up GCloud CLI
     - name: Set up GCloud CLI
       uses: google-github-actions/setup-gcloud@v2
       with:
@@ -29,8 +29,13 @@ jobs:
 
     # Step 4: SSH into the VM and run deployment commands
     - name: Deploy to GCP VM
+      env:
+        PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
-        ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} Muhammad@34.122.154.116 << EOF
+        echo "$PRIVATE_KEY" > private_key.pem
+        chmod 600 private_key.pem
+        
+        ssh -o StrictHostKeyChecking=no -i private_key.pem Muhammad@34.122.154.116 << EOF
           # Step 4.1: Allow SSH through UFW
           sudo ufw allow ssh
           sudo ufw enable
@@ -57,3 +62,6 @@ jobs:
           # Step 4.7: Reload UFW rules
           sudo ufw reload
         EOF
+        
+        # Clean up the private key
+        rm private_key.pem
