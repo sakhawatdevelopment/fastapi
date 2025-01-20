@@ -32,15 +32,20 @@ jobs:
       env:
         PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
-        # Write the private key to a file
-        echo "$PRIVATE_KEY" | tr -d '\r' > private_key.pem
-        chmod 600 private_key.pem
-
+       # Create SSH directory
+        mkdir -p ~/.ssh
+        
+        # Remove potential carriage return characters from the private key
+        echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/private_key.pem
+        
+        # Set appropriate permissions on the private key file
+        chmod 600 ~/.ssh/private_key.pem
+    
         # Test SSH connectivity
-        ssh -o StrictHostKeyChecking=no -i private_key.pem Muhammad@34.122.154.116 exit
-
-        # Run deployment commands
-        ssh -o StrictHostKeyChecking=no -i private_key.pem Muhammad@34.122.154.116 << EOF
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem Muhammad@34.122.154.116 exit
+        
+        # Run deployment commands on the remote VM
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem Muhammad@34.122.154.116 << EOF
           sudo ufw allow ssh
           sudo ufw enable
           sudo ufw reload
@@ -54,6 +59,6 @@ jobs:
           sudo docker-compose up --build -d
           sudo ufw reload
         EOF
-
+        
         # Clean up the private key
-        rm -f private_key.pem
+        rm -f ~/.ssh/private_key.pem
