@@ -30,11 +30,6 @@ jobs:
     # Step 4: SSH into the VM and run deployment commands
     - name: Deploy to GCP VM
       run: |
-#        mkdir -p ~/.ssh
-#        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-#        chmod 600 ~/.ssh/id_rsa
-#        ssh-keyscan -H 34.122.154.116 >> ~/.ssh/known_hosts
-
         ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} Muhammad@34.122.154.116 << EOF
           # Step 4.1: Allow SSH through UFW
           sudo ufw allow ssh
