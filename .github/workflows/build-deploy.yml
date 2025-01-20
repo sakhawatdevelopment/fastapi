@@ -1,0 +1,53 @@
+name: Deploy to GCP
+
+on:
+  push:
+    branches:
+      - main  # Trigger the deployment only on pushes to the 'gcp' branch.
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Step 4: Set up GCP Credentials (Using GitHub Secrets)
+    - name: Set up GCP credentials
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        project_id: delta-prop-shop
+        credentials: ${{ secrets.GCP_CREDENTIALS }}
+
+    # Step 5: SSH into the VM and run deployment commands
+    - name: Deploy to GCP VM
+      run: |
+        ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} Muhammad@34.122.154.116 << EOF
+          # Step 5.1: Allow SSH through UFW
+          sudo ufw allow ssh
+          sudo ufw enable
+          sudo ufw reload
+          
+          # Step 5.2: Navigate to the project directory
+          cd fastapi
+
+          # Step 5.3: Fetch and check out the gcp branch
+          git fetch 
+          git checkout main
+
+          # Step 5.4: Pull the latest code
+          git pull origin main
+
+          # Step 5.5: Check for the .env file
+          if [ ! -f .env ]; then
+            echo "Environment file not found. Please create it manually." && exit 1
+          fi
+
+          # Step 5.6: Build and start the Docker containers
+          sudo docker-compose up --build -d
+          
+          # Step 5.7: Reload UFW rules
+          sudo ufw reload
+        EOF
