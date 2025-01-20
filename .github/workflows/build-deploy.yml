@@ -32,15 +32,20 @@ jobs:
       env:
         PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
-       # Create SSH directory
+        # Create SSH directory
         mkdir -p ~/.ssh
         
-        # Remove potential carriage return characters from the private key
+        # Remove potential carriage return characters from the private key and save it
         echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/private_key.pem
         
         # Set appropriate permissions on the private key file
         chmod 600 ~/.ssh/private_key.pem
-    
+        
+        # Ensure the public key is added to the VM authorized_keys file.
+        # If not done already, run this step manually or set it up in your VM's SSH configuration.
+        # Example of adding public key (if required):
+        # echo "<public-key>" >> ~/.ssh/authorized_keys
+
         # Test SSH connectivity
         ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem Muhammad@34.122.154.116 exit
         
