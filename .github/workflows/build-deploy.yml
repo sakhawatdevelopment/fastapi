@@ -31,7 +31,7 @@ jobs:
           sudo ufw reload
           
           # Step 5.2: Navigate to the project directory
-          cd SN8_Trading_App
+          cd fastapi
 
           # Step 5.3: Fetch and check out the gcp branch
           git fetch 
