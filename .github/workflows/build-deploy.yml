@@ -21,12 +21,11 @@ jobs:
         project_id: delta-prop-shop
         credentials: ${{ secrets.GCP_CREDENTIALS }}
 
-    # Step 3: Set up GCloud CLI
+    # Step 3: Set up GCloud CLI (no need to install gce component)
     - name: Set up GCloud CLI
       uses: google-github-actions/setup-gcloud@v2
       with:
         project_id: delta-prop-shop
-        install_components: 'gce'
 
     # Step 4: SSH into the VM and run deployment commands
     - name: Deploy to GCP VM
