@@ -32,36 +32,28 @@ jobs:
       env:
         PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
-        echo "$PRIVATE_KEY" > private_key.pem
+        # Write the private key to a file
+        echo "$PRIVATE_KEY" | tr -d '\r' > private_key.pem
         chmod 600 private_key.pem
-        
+
+        # Test SSH connectivity
+        ssh -o StrictHostKeyChecking=no -i private_key.pem Muhammad@34.122.154.116 exit
+
+        # Run deployment commands
         ssh -o StrictHostKeyChecking=no -i private_key.pem Muhammad@34.122.154.116 << EOF
-          # Step 4.1: Allow SSH through UFW
           sudo ufw allow ssh
           sudo ufw enable
           sudo ufw reload
-          
-          # Step 4.2: Navigate to the project directory
           cd fastapi
-
-          # Step 4.3: Fetch and check out the main branch
           git fetch
           git checkout main
-
-          # Step 4.4: Pull the latest code
           git pull origin main
-
-          # Step 4.5: Check for the .env file
           if [ ! -f .env ]; then
             echo "Environment file not found. Please create it manually." && exit 1
           fi
-
-          # Step 4.6: Build and start the Docker containers
           sudo docker-compose up --build -d
-          
-          # Step 4.7: Reload UFW rules
           sudo ufw reload
         EOF
-        
+
         # Clean up the private key
-        rm private_key.pem
+        rm -f private_key.pem
