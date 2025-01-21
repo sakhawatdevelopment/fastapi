@@ -1,76 +1,114 @@
-# FastAPI Hello World
+# Trading App
 
-This is a simple FastAPI application that returns "Hello, World!" as a JSON response. The app is containerized using Docker and Docker Compose for easy setup and deployment.
-
-## Prerequisites
-
-- [Docker](https://www.docker.com/get-started)
-- [Docker Compose](https://docs.docker.com/compose/install/) (typically comes with Docker)
-
-## Project Structure
-
-```
-fastapi-hello-world/
-├── Dockerfile
-├── docker-compose.yml
-├── main.py
-├── requirements.txt
-└── README.md
+## Step 1: Install Required Softwares
+Update your package manager and install necessary packages:
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3-pip python3-venv git
 ```
 
-- `Dockerfile`: Contains instructions to build the Docker image for the FastAPI app.
-- `docker-compose.yml`: Defines the services and configurations for Docker Compose.
-- `main.py`: FastAPI app that serves a "Hello, World!" response.
-- `requirements.txt`: Lists the Python dependencies.
+## Step 2: Clone Your FastAPI Application
+Clone your FastAPI project from your version control system:
+```commandline
+git clone https://github.com/DeltaCompute24/SN8_Trading_App.git
+cd SN8_Trading_App
+```
 
-## Setup and Run
+## Step 3: Set Up a Virtual Environment
+Create a virtual environment for your FastAPI application:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
 
-### 1. Clone the repository
+## Step 4: Install Python Dependencies
+Install the necessary Python packages for your application:
+```bash
+pip install -r requirements.txt
+```
 
-If you haven't already, clone the repository to your local machine:
+## Step 5: Configure Environment Variables
+Create a .env file in your project directory to store environment variables:
+```bash
+touch .env
+```
+Add the necessary environment variables:
+```bash
+POLYGON_API_KEY="XXXXXXXXXXXXXXXXXXXXXXXX"
+SIGNAL_API_KEY="XXXXXXXXXXXXXXXXXXXXXX"
+DATABASE_URL=postgresql+asyncpg://developer:DeltaCompute123@rococo-db-server-postgres-aurora.cluster-c3y444mm80qj.eu-west-1.rds.amazonaws.com/postgres
+```
+
+## Step 6: Set Up Redis
+Install Redis for Celery:
+```bash
+sudo apt install -y redis-server
+sudo systemctl enable redis-server
+sudo systemctl start redis-server
+```
+
+## Step 7: Run Celery Beat and Workers
+Start the Celery beat:
+```bash
+celery -A src.core.celery_app beat --loglevel=info
+```
+
+Start the Celery worker for position_monitor task
+```bash
+celery -A src.core.celery_app worker --loglevel=info -Q position_monitoring
+```
+
+Start the Celery worker for subscription_manager task
+```bash
+celery -A src.core.celery_app worker --loglevel=info -Q subscription_management
+```
+
+## Step 8: Run the FastAPI Application
+Run the FastAPI application using uvicorn:
+```bash
+uvicorn src.main:app --host 0.0.0.0 --port 80
+```
+
+## Step 9: Install and Configure Nginx
+
+Install Nginx to act as a reverse proxy:
+```bash
+sudo apt install nginx
+```
+
+Create Nginx configuration file for your FastAPI application:
+```bash
+sudo nano /etc/nginx/sites-available/trading_app
+```
+Add the following configuration:
 
 ```bash
-git clone https://github.com/sakhawatdevelopment/fastapi.git
-cd fastapi
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
 ```
 
-### 2. Build and start the app with Docker Compose
-
-Run the following command to build the image and start the app:
-
+Enable the configuration and restart Nginx:
 ```bash
-docker-compose up --build
+sudo ln -s /etc/nginx/sites-available/trading_app /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
 ```
 
-Docker Compose will build the image based on the `Dockerfile` and start the FastAPI app in a container.
-
-### 3. Access the app
-
-Once the app is running, open your browser and navigate to:
-
-```
-http://localhost:8000
-```
-
-You should see a response like:
-
-```json
-{"message": "Hello, World!"}
-```
-
-### 4. Explore the interactive API documentation
-
-FastAPI automatically generates interactive API documentation:
-
-- Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
-- ReDoc: [http://localhost:8000/redoc](http://localhost:8000/redoc)
-
-### 5. Stop the app
-
-To stop the app, use:
-
+Use Certbot to obtain an SSL certificate from Let's Encrypt:
 ```bash
-docker-compose down
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com
 ```
 
-This will stop and remove the running containers.
+# Conclusion
+You have successfully deployed your FastAPI application with Celery tasks on an AWS EC2 instance. This setup includes running Redis for Celery, and using Nginx as a reverse proxy.
