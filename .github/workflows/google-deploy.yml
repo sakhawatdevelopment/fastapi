@@ -62,6 +62,9 @@ jobs:
               echo ".env file found. Proceeding with deployment."
             fi
           
+            # Mark directory as safe for Git
+            sudo git config --global --add safe.directory /home/muhammad/fastapi
+          
             # Pull the latest code
             sudo git fetch --all
             sudo git reset --hard origin/gcp
