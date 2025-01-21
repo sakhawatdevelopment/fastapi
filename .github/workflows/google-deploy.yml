@@ -10,61 +10,60 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Step 1: Checkout the repository
-    - name: Checkout code
-      uses: actions/checkout@v2
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    # Step 2: Set up GCP credentials
-    - name: Authenticate with GCP
-      uses: google-github-actions/auth@v1
-      with:
-        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+      # Step 2: Set up GCP credentials
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-    # Step 3: Set up GCloud CLI
-    - name: Set up GCloud CLI
-      uses: google-github-actions/setup-gcloud@v2
-      with:
-        project_id: delta-prop-shop
+      # Step 3: Set up GCloud CLI
+      - name: Set up GCloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: delta-prop-shop
 
-    # Step 4: Deploy to GCP VM
-    - name: Deploy to GCP VM
-      env:
-        PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        SSH_USER: ${{ secrets.SSH_USER }}
-        VM_IP: ${{ secrets.VM_IP }}
-      run: |
-        # Create SSH directory
-        mkdir -p ~/.ssh
-        
-        # Save the private key
-        echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/private_key.pem
-        
-        # Set correct permissions for the private key
-        chmod 600 ~/.ssh/private_key.pem
-        
-        # Test SSH connectivity
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem muhammad@34.122.87.181 exit
-
-        # Deploy the application
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem muhammad@34.122.87.181 << 'EOF'
-          set -e
-          sudo ufw reload
+      # Step 4: Deploy to GCP VM
+      - name: Deploy to GCP VM
+        env:
+          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          VM_IP: ${{ secrets.VM_IP }}
+        run: |
+          # Create SSH directory
+          mkdir -p ~/.ssh
           
-          # Navigate to the application directory
-          cd fastapi
-          cd SN8_Trading_App
-
-          # Pull the latest code
-          git fetch --all
-          git reset --hard origin/gcp
-          git pull origin gcp
-
-          # Build and run the Docker containers
-          sudo docker-compose down
-          sudo docker-compose up --build -d
-
-          sudo ufw reload
-        EOF
-        
-        # Clean up the private key
-        rm -f ~/.ssh/private_key.pem
+          # Save the private key
+          echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/private_key.pem
+          
+          # Set correct permissions for the private key
+          chmod 600 ~/.ssh/private_key.pem
+          
+          # Test SSH connectivity
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem Muhammad@34.122.154.116 exit
+          
+          # Deploy the application
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem Muhammad@34.122.154.116 << 'EOF'
+            set -e
+            sudo ufw reload
+          
+            # Navigate to the application directory
+            cd fastapi
+          
+            # Pull the latest code
+            git fetch --all
+            git reset --hard origin/gcp
+            git pull origin gcp
+          
+            # Build and run the Docker containers
+            sudo docker-compose down
+            sudo docker-compose up --build -d
+          
+            sudo ufw reload
+          EOF
+          
+          # Clean up the private key
+          rm -f ~/.ssh/private_key.pem
