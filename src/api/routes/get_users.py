@@ -24,6 +24,3 @@ async def get_users(
     result = await db.execute(query)
     return result.scalars().all()
 
-@router.get("/hello/", response_model=str)
-def hello_world():
-    return "Helloo World testing"
