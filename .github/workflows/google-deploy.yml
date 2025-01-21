@@ -51,6 +51,7 @@ jobs:
           sudo ufw reload
           
           # Navigate to the application directory
+          cd fastapi
           cd SN8_Trading_App
 
           # Pull the latest code
