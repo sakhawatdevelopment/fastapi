@@ -43,10 +43,10 @@ jobs:
         chmod 600 ~/.ssh/private_key.pem
         
         # Test SSH connectivity
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem $SSH_USER@34.122.87.181 exit
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem muhammad@34.122.87.181 exit
 
         # Deploy the application
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem $SSH_USER@34.122.87.181 << 'EOF'
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem muhammad@34.122.87.181 << 'EOF'
           set -e
           sudo ufw reload
           
