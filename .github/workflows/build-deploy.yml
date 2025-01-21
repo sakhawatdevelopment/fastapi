@@ -1,4 +1,4 @@
-name: Deploy to GCP
+name: Deploy to GCP VM
 
 on:
   push:
@@ -15,11 +15,10 @@ jobs:
       uses: actions/checkout@v2
 
     # Step 2: Set up GCP credentials
-    - name: Set up GCP credentials
-      uses: google-github-actions/setup-gcloud@v2
+    - name: Authenticate with GCP
+      uses: google-github-actions/auth@v1
       with:
-        project_id: delta-prop-shop
-        credentials: ${{ secrets.GCP_CREDENTIALS }}
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
     # Step 3: Set up GCloud CLI
     - name: Set up GCloud CLI
@@ -27,41 +26,49 @@ jobs:
       with:
         project_id: delta-prop-shop
 
-    # Step 4: SSH into the VM and run deployment commands
+    # Step 4: Deploy to GCP VM
     - name: Deploy to GCP VM
       env:
         PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SSH_USER: ${{ secrets.SSH_USER }}
+        VM_IP: ${{ secrets.VM_IP }}
       run: |
         # Create SSH directory
         mkdir -p ~/.ssh
         
-        # Remove potential carriage return characters from the private key and save it
+        # Save the private key
         echo "$PRIVATE_KEY" | tr -d '\r' > ~/.ssh/private_key.pem
         
-        # Set appropriate permissions on the private key file
+        # Set correct permissions for the private key
         chmod 600 ~/.ssh/private_key.pem
         
-        # Ensure the public key is added to the VM authorized_keys file.
-        # If not done already, run this step manually or set it up in your VM's SSH configuration.
-        # Example of adding public key (if required):
-        # echo "<public-key>" >> ~/.ssh/authorized_keys
-
         # Test SSH connectivity
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem Muhammad@34.122.154.116 exit
-        
-        # Run deployment commands on the remote VM
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem Muhammad@34.122.154.116 << EOF
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem $SSH_USER@$VM_IP exit
+
+        # Deploy the application
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem $SSH_USER@$VM_IP << 'EOF'
+          set -e
           sudo ufw allow ssh
           sudo ufw enable
           sudo ufw reload
+          
+          # Navigate to the application directory
           cd fastapi
-          git fetch
-          git checkout main
+
+          # Pull the latest code
+          git fetch --all
+          git reset --hard origin/main
           git pull origin main
+
+          # Check if .env file exists
           if [ ! -f .env ]; then
-            echo "Environment file not found. Please create it manually." && exit 1
+            echo ".env file missing. Deployment aborted." && exit 1
           fi
+
+          # Build and run the Docker containers
+          sudo docker-compose down
           sudo docker-compose up --build -d
+
           sudo ufw reload
         EOF
         
