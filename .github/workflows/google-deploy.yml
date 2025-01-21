@@ -62,10 +62,13 @@ jobs:
               echo ".env file found. Proceeding with deployment."
             fi
           
+            # Mark directory as safe for Git
+            git config --global --add safe.directory /home/muhammad/fastapi
+          
             # Pull the latest code
-            git fetch --all
-            git reset --hard origin/gcp
-            git pull origin gcp
+            sudo git fetch --all
+            sudo git reset --hard origin/gcp
+            sudo git pull origin gcp
           
             # Build and run the Docker containers
             sudo docker-compose down
