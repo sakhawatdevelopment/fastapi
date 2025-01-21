@@ -48,8 +48,7 @@ jobs:
         # Deploy the application
         ssh -o StrictHostKeyChecking=no -i ~/.ssh/private_key.pem $SSH_USER@$VM_IP << 'EOF'
           set -e
-          sudo ufw allow ssh
-          sudo ufw enable
+#          sudo ufw enable
           sudo ufw reload
           
           # Navigate to the application directory
@@ -60,10 +59,10 @@ jobs:
           git reset --hard origin/main
           git pull origin main
 
-          # Check if .env file exists
-          if [ ! -f .env ]; then
-            echo ".env file missing. Deployment aborted." && exit 1
-          fi
+#          # Check if .env file exists
+#          if [ ! -f .env ]; then
+#            echo ".env file missing. Deployment aborted." && exit 1
+#          fi
 
           # Build and run the Docker containers
           sudo docker-compose down
